@@ -36,7 +36,10 @@ import org.jberet.runtime.PartitionExecutionImpl;
 import org.jberet.runtime.StepExecutionImpl;
 import java.lang.ref.SoftReference;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
+import javax.persistence.LockModeType;
 import static org.jberet.jpa.repository.TableColumnsJpa.formatException;
 import org.jberet.jpa.repository.entity.JobExecutionJpa_;
 import org.jberet.jpa.repository.entity.JobInstanceJpa_;
@@ -48,6 +51,12 @@ import org.jberet.repository.JobRepository;
 import org.jberet.jpa.util.BatchUtilJpa;
 
 public final class JpaRepository implements JobRepository {
+
+    private final Map<String, Object> hints = new HashMap<String, Object>() {
+        {
+            put("javax.persistence.lock.timeout", -2);
+        }
+    };
 
     final ConcurrentMap<ApplicationAndJobName, SoftReference<ExtendedJob>> jobs = new ConcurrentHashMap<>();
 
@@ -108,9 +117,15 @@ public final class JpaRepository implements JobRepository {
 
     @Override
     public void removeJobInstance(long jobInstanceId) {
-        this.entityManager.remove(
-                this.entityManager.find(JobInstanceJpa.class, jobInstanceId)
+        JobInstanceJpa find = this.entityManager.find(
+                JobInstanceJpa.class,
+                jobInstanceId,
+                LockModeType.PESSIMISTIC_WRITE,
+                hints
         );
+        if (Objects.nonNull(find)) {
+            this.entityManager.remove(find);
+        }
     }
 
     @Override
@@ -306,18 +321,37 @@ public final class JpaRepository implements JobRepository {
         stopStepExecution(jobExecution);
     }
 
+    public JobExecutionJpa getNextUnlocked(Integer offset) {
+        CriteriaBuilder criteriaBuilder = this.entityManager.getCriteriaBuilder();
+        CriteriaQuery<JobExecutionJpa> criteriaQuery = criteriaBuilder.createQuery(JobExecutionJpa.class);
+        Root<JobExecutionJpa> from = criteriaQuery.from(JobExecutionJpa.class);
+        criteriaQuery.select(from);
+        criteriaQuery.orderBy(
+                criteriaBuilder.asc(from.get(JobExecutionJpa_.createTime))
+        );
+        TypedQuery<JobExecutionJpa> createQuery = this.entityManager.createQuery(criteriaQuery);
+        createQuery.setLockMode(LockModeType.PESSIMISTIC_WRITE);
+        createQuery.setHint("javax.persistence.lock.timeout", -2);
+        createQuery.setFirstResult(offset);
+        createQuery.setMaxResults(1);
+        return createQuery.getResultList().stream().findFirst().orElse(null);
+    }
+
     @Override
     public void removeJobExecutions(JobExecutionSelector jobExecutionSelector) {
         CriteriaBuilder criteriaBuilder = this.entityManager.getCriteriaBuilder();
         CriteriaQuery<JobExecutionJpa> criteriaQuery = criteriaBuilder.createQuery(JobExecutionJpa.class);
-        Root<JobExecutionJpa> root = criteriaQuery.from(JobExecutionJpa.class);
-        criteriaQuery.select(root);
+        criteriaQuery.select(criteriaQuery.from(JobExecutionJpa.class));
         Set<Long> jobExecutionIds = this.entityManager.createQuery(criteriaQuery).getResultList().stream().map(JobExecutionJpa::getId).collect(Collectors.toSet());
-        this.entityManager.createQuery(criteriaQuery).getResultList().stream().filter(
-                jobExecution -> Objects.isNull(jobExecutionSelector) || jobExecutionSelector.select(jobExecution, jobExecutionIds)
-        ).forEach(
-                jobExecution -> this.entityManager.remove(jobExecution)
-        );
+        Integer offset = 0;
+        JobExecutionJpa jobExecution;
+        while (Objects.nonNull(jobExecution = getNextUnlocked(offset))) {
+            if (Objects.isNull(jobExecutionSelector) || jobExecutionSelector.select(jobExecution, jobExecutionIds)) {
+                this.entityManager.remove(jobExecution);
+            } else {
+                offset += 1;
+            }
+        }
     }
 
     @Override
@@ -410,21 +444,21 @@ public final class JpaRepository implements JobRepository {
         ).map(
                 stepExecution -> StepExecutionImpl.class.cast(stepExecution)
         ).findFirst().orElseGet(() -> {
-                    CriteriaBuilder criteriaBuilder = this.entityManager.getCriteriaBuilder();
-                    CriteriaQuery<StepExecutionJpa> criteriaQuery = criteriaBuilder.createQuery(StepExecutionJpa.class);
-                    Root<StepExecutionJpa> root = criteriaQuery.from(StepExecutionJpa.class);
-                    criteriaQuery.select(root);
-                    criteriaQuery.where(
-                            criteriaBuilder.equal(root.get(StepExecutionJpa_.jobExecution).get(JobExecutionJpa_.jobInstance).get(JobInstanceJpa_.id), jobExecutionToRestart.getJobInstance().getInstanceId()),
-                            criteriaBuilder.equal(root.get(StepExecutionJpa_.stepName), stepName)
-                    );
-                    criteriaQuery.orderBy(
-                            criteriaBuilder.desc(root.get(StepExecutionJpa_.id))
-                    );
-                    TypedQuery<StepExecutionJpa> createQuery = this.entityManager.createQuery(criteriaQuery);
-                    createQuery.setMaxResults(1);
-                    return BatchUtilJpa.from(createQuery.getSingleResult());
-                }
+            CriteriaBuilder criteriaBuilder = this.entityManager.getCriteriaBuilder();
+            CriteriaQuery<StepExecutionJpa> criteriaQuery = criteriaBuilder.createQuery(StepExecutionJpa.class);
+            Root<StepExecutionJpa> root = criteriaQuery.from(StepExecutionJpa.class);
+            criteriaQuery.select(root);
+            criteriaQuery.where(
+                    criteriaBuilder.equal(root.get(StepExecutionJpa_.jobExecution).get(JobExecutionJpa_.jobInstance).get(JobInstanceJpa_.id), jobExecutionToRestart.getJobInstance().getInstanceId()),
+                    criteriaBuilder.equal(root.get(StepExecutionJpa_.stepName), stepName)
+            );
+            criteriaQuery.orderBy(
+                    criteriaBuilder.desc(root.get(StepExecutionJpa_.id))
+            );
+            TypedQuery<StepExecutionJpa> createQuery = this.entityManager.createQuery(criteriaQuery);
+            createQuery.setMaxResults(1);
+            return BatchUtilJpa.from(createQuery.getSingleResult());
+        }
         );
     }
 
@@ -442,21 +476,21 @@ public final class JpaRepository implements JobRepository {
         ).filter(
                 result -> !result.isEmpty()
         ).orElseGet(() -> {
-                    CriteriaBuilder criteriaBuilder = this.entityManager.getCriteriaBuilder();
-                    CriteriaQuery<PartitionExecutionJpa> criteriaQuery = criteriaBuilder.createQuery(PartitionExecutionJpa.class);
-                    Root<PartitionExecutionJpa> root = criteriaQuery.from(PartitionExecutionJpa.class);
-                    criteriaQuery.select(root);
-                    criteriaQuery.where(
-                            criteriaBuilder.equal(root.get(PartitionExecutionJpa_.stepExecution).get(StepExecutionJpa_.id), stepExecutionId)
-                    );
-                    criteriaQuery.orderBy(
-                            criteriaBuilder.asc(root.get(PartitionExecutionJpa_.id))
-                    );
-                    return this.entityManager.createQuery(criteriaQuery).getResultList().stream().filter(
-                            partitionExecutionJpa -> !notCompletedOnly || !BatchStatus.COMPLETED.equals(partitionExecutionJpa.getBatchStatus())
-                    ).map(partitionExecutionJpa -> BatchUtilJpa.from(partitionExecutionJpa)
-                    ).collect(Collectors.toList());
-                }
+            CriteriaBuilder criteriaBuilder = this.entityManager.getCriteriaBuilder();
+            CriteriaQuery<PartitionExecutionJpa> criteriaQuery = criteriaBuilder.createQuery(PartitionExecutionJpa.class);
+            Root<PartitionExecutionJpa> root = criteriaQuery.from(PartitionExecutionJpa.class);
+            criteriaQuery.select(root);
+            criteriaQuery.where(
+                    criteriaBuilder.equal(root.get(PartitionExecutionJpa_.stepExecution).get(StepExecutionJpa_.id), stepExecutionId)
+            );
+            criteriaQuery.orderBy(
+                    criteriaBuilder.asc(root.get(PartitionExecutionJpa_.id))
+            );
+            return this.entityManager.createQuery(criteriaQuery).getResultList().stream().filter(
+                    partitionExecutionJpa -> !notCompletedOnly || !BatchStatus.COMPLETED.equals(partitionExecutionJpa.getBatchStatus())
+            ).map(partitionExecutionJpa -> BatchUtilJpa.from(partitionExecutionJpa)
+            ).collect(Collectors.toList());
+        }
         );
     }
 
