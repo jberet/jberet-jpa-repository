@@ -16,22 +16,23 @@ import java.util.Date;
 import java.util.Properties;
 import jakarta.batch.runtime.BatchStatus;
 import jakarta.batch.runtime.JobExecution;
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Convert;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
+import java.util.ArrayList;
 import org.jberet.jpa.repository.PropertiesConverter;
 import static org.jberet.jpa.repository.TableColumnsJpa.BATCHSTATUS;
 import static org.jberet.jpa.repository.TableColumnsJpa.CREATETIME;
@@ -97,7 +98,7 @@ public class JobExecutionJpa implements Serializable, JobExecution {
     private String restartPosition;
     
     @OneToMany(fetch = FetchType.LAZY, mappedBy = StepExecutionJpa_.JOB_EXECUTION, cascade = CascadeType.REMOVE , orphanRemoval = true)
-    private Collection<StepExecutionJpa> stepExecutions;
+    private Collection<StepExecutionJpa> stepExecutions = new ArrayList<>();
     
     public Long getId() {
         return id;
