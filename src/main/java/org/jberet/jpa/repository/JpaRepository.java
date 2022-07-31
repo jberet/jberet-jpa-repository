@@ -64,7 +64,7 @@ public final class JpaRepository implements JobRepository {
 
     private final Map<String, Object> hints = new HashMap<String, Object>() {
         {
-            put("javax.persistence.lock.timeout", -2);
+            put("jakarta.persistence.lock.timeout", -2);
         }
     };
 
