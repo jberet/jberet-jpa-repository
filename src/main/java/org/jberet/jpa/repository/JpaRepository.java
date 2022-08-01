@@ -61,10 +61,12 @@ import org.jberet.repository.JobRepository;
 import org.jberet.jpa.util.BatchUtilJpa;
 
 public final class JpaRepository implements JobRepository {
+    
+    public static final String JAKARTA_JPA_LOCK_TIMEOUT = "jakarta.persistence.lock.timeout";
 
     private final Map<String, Object> hints = new HashMap<String, Object>() {
         {
-            put("jakarta.persistence.lock.timeout", -2);
+            put(JAKARTA_JPA_LOCK_TIMEOUT, -2);
         }
     };
 
@@ -341,7 +343,7 @@ public final class JpaRepository implements JobRepository {
         );
         TypedQuery<JobExecutionJpa> createQuery = this.entityManager.createQuery(criteriaQuery);
         createQuery.setLockMode(LockModeType.PESSIMISTIC_WRITE);
-        createQuery.setHint("javax.persistence.lock.timeout", -2);
+        createQuery.setHint(JAKARTA_JPA_LOCK_TIMEOUT, -2);
         createQuery.setFirstResult(offset);
         createQuery.setMaxResults(1);
         return createQuery.getResultList().stream().findFirst().orElse(null);
