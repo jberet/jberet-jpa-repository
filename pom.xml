@@ -22,6 +22,13 @@
     <artifactId>jberet-jpa-repository</artifactId>
     <version>2.1.1.Final-SNAPSHOT</version>
 
+    <scm>
+        <connection>scm:git:https://github.com/jberet/jberet-jpa-repository.git</connection>
+        <developerConnection>scm:git:https://github.com/jberet/jberet-jpa-repository.git</developerConnection>
+        <url>https://github.com/jberet/jberet-jpa-repository</url>
+    </scm>
+    <url>${project.scm.url}</url>
+
     <properties>
         <version.jakarta.persistence>3.1.0</version.jakarta.persistence>
         <version.org.hibernate>6.1.1.Final</version.org.hibernate>
