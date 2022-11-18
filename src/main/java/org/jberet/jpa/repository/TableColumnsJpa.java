@@ -39,6 +39,7 @@ public final class TableColumnsJpa {
     public static final String EXITSTATUS = "EXITSTATUS";
     public static final String JOBPARAMETERS = "JOBPARAMETERS";
     public static final String RESTARTPOSITION = "RESTARTPOSITION";
+    public static final String STEP_EXECUTION = "STEP_EXECUTION";
     public static final String STEPEXECUTIONID = "STEPEXECUTIONID";
     public static final String STEPNAME = "STEPNAME";
     public static final String EXECUTIONEXCEPTION = "EXECUTIONEXCEPTION";

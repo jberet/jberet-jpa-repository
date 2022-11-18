@@ -41,11 +41,11 @@ import static org.jberet.jpa.repository.TableColumnsJpa.EXITSTATUS;
 import static org.jberet.jpa.repository.TableColumnsJpa.JOBEXECUTIONID;
 import static org.jberet.jpa.repository.TableColumnsJpa.JOBINSTANCEID;
 import static org.jberet.jpa.repository.TableColumnsJpa.JOBPARAMETERS;
+import static org.jberet.jpa.repository.TableColumnsJpa.JOB_EXECUTION;
 import static org.jberet.jpa.repository.TableColumnsJpa.LASTUPDATEDTIME;
 import static org.jberet.jpa.repository.TableColumnsJpa.RESTARTPOSITION;
 import static org.jberet.jpa.repository.TableColumnsJpa.STARTTIME;
 import static org.jberet.jpa.repository.TableColumnsJpa.VERSION;
-import static org.jberet.jpa.repository.entity.StepExecutionJpa_.JOB_EXECUTION;
 
 /**
  *

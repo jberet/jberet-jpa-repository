@@ -47,11 +47,11 @@ import static org.jberet.jpa.repository.TableColumnsJpa.ROLLBACKCOUNT;
 import static org.jberet.jpa.repository.TableColumnsJpa.STARTTIME;
 import static org.jberet.jpa.repository.TableColumnsJpa.STEPEXECUTIONID;
 import static org.jberet.jpa.repository.TableColumnsJpa.STEPNAME;
+import static org.jberet.jpa.repository.TableColumnsJpa.STEP_EXECUTION;
 import static org.jberet.jpa.repository.TableColumnsJpa.VERSION;
 import static org.jberet.jpa.repository.TableColumnsJpa.WRITECOUNT;
 import static org.jberet.jpa.repository.TableColumnsJpa.WRITERCHECKPOINTINFO;
 import static org.jberet.jpa.repository.TableColumnsJpa.WRITESKIPCOUNT;
-import static org.jberet.jpa.repository.entity.PartitionExecutionJpa_.STEP_EXECUTION;
 
 /**
  *
