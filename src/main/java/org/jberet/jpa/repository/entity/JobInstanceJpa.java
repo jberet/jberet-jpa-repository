@@ -25,8 +25,8 @@ import java.util.ArrayList;
 import static org.jberet.jpa.repository.TableColumnsJpa.APPLICATIONNAME;
 import static org.jberet.jpa.repository.TableColumnsJpa.JOBINSTANCEID;
 import static org.jberet.jpa.repository.TableColumnsJpa.JOBNAME;
+import static org.jberet.jpa.repository.TableColumnsJpa.JOB_INSTANCE;
 import static org.jberet.jpa.repository.TableColumnsJpa.VERSION;
-import static org.jberet.jpa.repository.entity.JobExecutionJpa_.JOB_INSTANCE;
 
 @Entity
 @Table(name = JOB_INSTANCE)
