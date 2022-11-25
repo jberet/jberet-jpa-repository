@@ -219,11 +219,13 @@ public final class JpaRepository implements JobRepository {
         CriteriaBuilder criteriaBuilder = this.entityManager.getCriteriaBuilder();
         CriteriaQuery<JobExecutionJpa> criteriaQuery = criteriaBuilder.createQuery(JobExecutionJpa.class);
         Root<JobExecutionJpa> root = criteriaQuery.from(JobExecutionJpa.class);
+        Join<JobExecutionJpa, JobInstanceJpa> join = root.join(JobExecutionJpa_.jobInstance);
         criteriaQuery.select(root);
         if (Objects.nonNull(jobInstance)) {
-            criteriaQuery.where(criteriaBuilder.equal(root.get(JobExecutionJpa_.jobInstance).get(JobInstanceJpa_.id), jobInstance));
+            criteriaQuery.where(criteriaBuilder.equal(join.get(JobInstanceJpa_.jobName), jobInstance.getJobName()));
         }
-        return this.entityManager.createQuery(criteriaQuery).getResultList().stream().map(jobExecutionJpa -> BatchUtilJpa.from(jobExecutionJpa)
+        return this.entityManager.createQuery(criteriaQuery).getResultList().stream().map(
+                jobExecutionJpa -> BatchUtilJpa.from(jobExecutionJpa)
         ).collect(Collectors.toList());
     }
 
