@@ -10,6 +10,7 @@
 
 package org.jberet.test;
 
+import jakarta.batch.runtime.JobExecution;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -156,6 +157,9 @@ public class JpaJobRepositoryTest {
 
         JobInstanceImpl jobInstance = repo.createJobInstance(job, null, this.getClass().getClassLoader());
         JobExecutionImpl jobExecution = repo.createJobExecution(jobInstance, null);
+        
+        Assert.assertTrue(repo.getJobExecutions(jobInstance).stream().anyMatch(execution -> execution.getExecutionId() == jobExecution.getExecutionId()));
+        
         StepExecutionImpl stepExecutionImpl = new StepExecutionImpl("step1");
         repo.addStepExecution(jobExecution, stepExecutionImpl);
         repo.addStepExecution(jobExecution, new StepExecutionImpl("step2"));
