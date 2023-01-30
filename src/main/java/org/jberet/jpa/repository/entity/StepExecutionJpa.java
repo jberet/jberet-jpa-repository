@@ -91,6 +91,7 @@ public class StepExecutionJpa implements Serializable {
     @Column(name = EXITSTATUS)
     private String exitStatus;
     
+    @Lob
     @Column(name = EXECUTIONEXCEPTION)
     private String executionException;
     
