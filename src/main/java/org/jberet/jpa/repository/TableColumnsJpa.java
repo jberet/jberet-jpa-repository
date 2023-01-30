@@ -56,7 +56,7 @@ public final class TableColumnsJpa {
     public static final String WRITERCHECKPOINTINFO = "WRITERCHECKPOINTINFO";
     public static final String PARTITION_EXECUTION = "PARTITION_EXECUTION";
     
-    static final int EXECUTION_EXCEPTION_LENGTH_LIMIT = 2048;
+    public static final int EXECUTION_EXCEPTION_LENGTH_LIMIT = 2048;
 
     static String formatException(final Exception exception) {
         if (exception == null) {
