@@ -35,6 +35,7 @@ import static org.jberet.jpa.repository.TableColumnsJpa.BATCHSTATUS;
 import static org.jberet.jpa.repository.TableColumnsJpa.COMMITCOUNT;
 import static org.jberet.jpa.repository.TableColumnsJpa.ENDTIME;
 import static org.jberet.jpa.repository.TableColumnsJpa.EXECUTIONEXCEPTION;
+import static org.jberet.jpa.repository.TableColumnsJpa.EXECUTION_EXCEPTION_LENGTH_LIMIT;
 import static org.jberet.jpa.repository.TableColumnsJpa.EXITSTATUS;
 import static org.jberet.jpa.repository.TableColumnsJpa.FILTERCOUNT;
 import static org.jberet.jpa.repository.TableColumnsJpa.JOBEXECUTIONID;
@@ -92,7 +93,7 @@ public class StepExecutionJpa implements Serializable {
     private String exitStatus;
     
     @Lob
-    @Column(name = EXECUTIONEXCEPTION)
+    @Column(name = EXECUTIONEXCEPTION, length = EXECUTION_EXCEPTION_LENGTH_LIMIT)
     private String executionException;
     
     @Lob
