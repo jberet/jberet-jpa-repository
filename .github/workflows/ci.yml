@@ -5,7 +5,11 @@ name: JBeret JPA Repository CI
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    branches:
+      - main
+    types: [ opened, synchronize, reopened, ready_for_review ]
+  push:
+    branches: [ main ]
 
 jobs:
   build-test-matrix:
@@ -15,31 +19,31 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
-        jdk-distribution: [temurin]
-        jdk-version: [11]
+        os: [ ubuntu-latest, windows-latest ]
+        jdk-distribution: [ temurin ]
+        jdk-version: [ 11, 17, 21 ]
     steps:
-    - name: Configure runner - Linux
-      if: contains(matrix.os, 'ubuntu')
-      run: |
-        sudo bash -c "echo '127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4' > /etc/hosts"
-        sudo bash -c "echo '::1         localhost localhost.localdomain localhost6 localhost6.localdomain6' >> /etc/hosts"
-    - name: Configure Runner - Windows
-      if: contains(matrix.os, 'windows')
-      run: |
-        echo '127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4' > %SystemRoot%\System32\drivers\etc\hosts
-        echo '::1         localhost localhost.localdomain localhost6 localhost6.localdomain6' >> %SystemRoot%\System32\drivers\etc\hosts
-      shell: cmd
-    - uses: actions/checkout@v3
-    - name: Set up JDK ${{ matrix.jdk-distribution }} ${{ matrix.jdk-version }}
-      uses: actions/setup-java@v3
-      with:
-        distribution: ${{ matrix.jdk-distribution }}
-        java-version: ${{ matrix.jdk-version }}
-    - name: Run Tests
-      run: mvn -ntp -U -B -fae clean install
-    - uses: actions/upload-artifact@v3
-      if: failure()
-      with:
-        name: surefire-${{ matrix.jdk-distribution }}-${{ matrix.jdk-version }}-${{ matrix.os }}
-        path: '**/surefire-reports/*.txt'
+      - name: Configure runner - Linux
+        if: contains(matrix.os, 'ubuntu')
+        run: |
+          sudo bash -c "echo '127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4' > /etc/hosts"
+          sudo bash -c "echo '::1         localhost localhost.localdomain localhost6 localhost6.localdomain6' >> /etc/hosts"
+      - name: Configure Runner - Windows
+        if: contains(matrix.os, 'windows')
+        run: |
+          echo '127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4' > %SystemRoot%\System32\drivers\etc\hosts
+          echo '::1         localhost localhost.localdomain localhost6 localhost6.localdomain6' >> %SystemRoot%\System32\drivers\etc\hosts
+        shell: cmd
+      - uses: actions/checkout@v3
+      - name: Set up JDK ${{ matrix.jdk-distribution }} ${{ matrix.jdk-version }}
+        uses: actions/setup-java@v3
+        with:
+          distribution: ${{ matrix.jdk-distribution }}
+          java-version: ${{ matrix.jdk-version }}
+      - name: Run Tests
+        run: mvn -ntp -U -B -fae clean install
+      - uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: surefire-${{ matrix.jdk-distribution }}-${{ matrix.jdk-version }}-${{ matrix.os }}
+          path: '**/surefire-reports/*.txt'
