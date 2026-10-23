@@ -36,7 +36,7 @@ import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.CriteriaUpdate;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Root;
-import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Subquery;
 import org.jberet.job.model.Job;
 import org.jberet.runtime.AbstractStepExecution;
@@ -271,18 +271,18 @@ public final class JpaRepository implements JobRepository {
         CriteriaBuilder criteriaBuilder = this.entityManager.getCriteriaBuilder();
         CriteriaUpdate<JobExecutionJpa> createCriteriaUpdate = criteriaBuilder.createCriteriaUpdate(JobExecutionJpa.class);
         Root<JobExecutionJpa> root = createCriteriaUpdate.from(JobExecutionJpa.class);
-        createCriteriaUpdate.set(root.get(JobExecutionJpa_.batchStatus), jobExecution.getBatchStatus());
-        createCriteriaUpdate.set(root.get(JobExecutionJpa_.lastUpdatedTime), jobExecution.getLastUpdatedTime());
+        createCriteriaUpdate.set(JobExecutionJpa_.batchStatus, jobExecution.getBatchStatus());
+        createCriteriaUpdate.set(JobExecutionJpa_.lastUpdatedTime, jobExecution.getLastUpdatedTime());
         if (fullUpdate) {
-            createCriteriaUpdate.set(root.get(JobExecutionJpa_.endTime), jobExecution.getEndTime());
-            createCriteriaUpdate.set(root.get(JobExecutionJpa_.exitStatus), jobExecution.getExitStatus());
-            createCriteriaUpdate.set(root.get(JobExecutionJpa_.restartPosition), jobExecution.combineRestartPositionAndUser());
+            createCriteriaUpdate.set(JobExecutionJpa_.endTime, jobExecution.getEndTime());
+            createCriteriaUpdate.set(JobExecutionJpa_.exitStatus, jobExecution.getExitStatus());
+            createCriteriaUpdate.set(JobExecutionJpa_.restartPosition, jobExecution.combineRestartPositionAndUser());
             if (saveJobParameters) {
                 // https://hibernate.atlassian.net/browse/HBX-1870
                 createCriteriaUpdate.set(root.get("jobParameters"), jobExecution.getJobParameters());
             }
         } else {
-            createCriteriaUpdate.set(root.get(JobExecutionJpa_.startTime), jobExecution.getStartTime());
+            createCriteriaUpdate.set(JobExecutionJpa_.startTime, jobExecution.getStartTime());
         }
         createCriteriaUpdate.where(
                 criteriaBuilder.equal(root.get(JobExecutionJpa_.id), jobExecution.getExecutionId())
@@ -298,7 +298,7 @@ public final class JpaRepository implements JobRepository {
         Root<StepExecutionJpa> from = subquery.from(StepExecutionJpa.class);
         subquery.select(from);
         subquery.where(criteriaBuilder.equal(from.get(StepExecutionJpa_.jobExecution).get(JobExecutionJpa_.id), jobExecution.getExecutionId()));
-        createCriteriaUpdate.set(root.get(PartitionExecutionJpa_.batchStatus), BatchStatus.STOPPING);
+        createCriteriaUpdate.set(PartitionExecutionJpa_.batchStatus, BatchStatus.STOPPING);
         createCriteriaUpdate.where(
                 root.get(PartitionExecutionJpa_.stepExecution).in(subquery.getSelection()),
                 criteriaBuilder.equal(root.get(PartitionExecutionJpa_.batchStatus), BatchStatus.STARTED)
@@ -310,7 +310,7 @@ public final class JpaRepository implements JobRepository {
         CriteriaBuilder criteriaBuilder = this.entityManager.getCriteriaBuilder();
         CriteriaUpdate<StepExecutionJpa> createCriteriaUpdate = criteriaBuilder.createCriteriaUpdate(StepExecutionJpa.class);
         Root<StepExecutionJpa> root = createCriteriaUpdate.from(StepExecutionJpa.class);
-        createCriteriaUpdate.set(root.get(StepExecutionJpa_.batchStatus), BatchStatus.STOPPING);
+        createCriteriaUpdate.set(StepExecutionJpa_.batchStatus, BatchStatus.STOPPING);
         createCriteriaUpdate.where(
                 criteriaBuilder.equal(root.get(StepExecutionJpa_.jobExecution).get(JobExecutionJpa_.id), jobExecution.getExecutionId()),
                 criteriaBuilder.equal(root.get(StepExecutionJpa_.batchStatus), BatchStatus.STARTED)
@@ -325,8 +325,8 @@ public final class JpaRepository implements JobRepository {
         CriteriaBuilder criteriaBuilder = this.entityManager.getCriteriaBuilder();
         CriteriaUpdate<JobExecutionJpa> createCriteriaUpdate = criteriaBuilder.createCriteriaUpdate(JobExecutionJpa.class);
         Root<JobExecutionJpa> root = createCriteriaUpdate.from(JobExecutionJpa.class);
-        createCriteriaUpdate.set(root.get(JobExecutionJpa_.batchStatus), BatchStatus.STOPPING);
-        createCriteriaUpdate.set(root.get(JobExecutionJpa_.lastUpdatedTime), jobExecution.getLastUpdatedTime());
+        createCriteriaUpdate.set(JobExecutionJpa_.batchStatus, BatchStatus.STOPPING);
+        createCriteriaUpdate.set(JobExecutionJpa_.lastUpdatedTime, jobExecution.getLastUpdatedTime());
         createCriteriaUpdate.where(
                 criteriaBuilder.equal(root.get(JobExecutionJpa_.id), jobExecution.getExecutionId()),
                 criteriaBuilder.equal(root.get(JobExecutionJpa_.batchStatus), BatchStatus.STARTED)
@@ -404,25 +404,25 @@ public final class JpaRepository implements JobRepository {
         CriteriaBuilder criteriaBuilder = this.entityManager.getCriteriaBuilder();
         CriteriaUpdate<StepExecutionJpa> createCriteriaUpdate = criteriaBuilder.createCriteriaUpdate(StepExecutionJpa.class);
         Root<StepExecutionJpa> root = createCriteriaUpdate.from(StepExecutionJpa.class);
-        Path<Long> versionPath = root.get(StepExecutionJpa_.version);
-        createCriteriaUpdate.set(versionPath, criteriaBuilder.sum(versionPath, 1L));
-        createCriteriaUpdate.set(root.get(StepExecutionJpa_.endTime), stepExecution.getEndTime());
-        createCriteriaUpdate.set(root.get(StepExecutionJpa_.batchStatus), stepExecution.getBatchStatus());
-        createCriteriaUpdate.set(root.get(StepExecutionJpa_.exitStatus), stepExecution.getExitStatus());
+        Expression<Long> versionPath = root.get(StepExecutionJpa_.version);
+        createCriteriaUpdate.set(StepExecutionJpa_.version, criteriaBuilder.sum(versionPath, 1L));
+        createCriteriaUpdate.set(StepExecutionJpa_.endTime, stepExecution.getEndTime());
+        createCriteriaUpdate.set(StepExecutionJpa_.batchStatus, stepExecution.getBatchStatus());
+        createCriteriaUpdate.set(StepExecutionJpa_.exitStatus, stepExecution.getExitStatus());
         if (stepExecution instanceof AbstractStepExecution) {
             AbstractStepExecution abstractStepExecution = AbstractStepExecution.class.cast(stepExecution);
-            createCriteriaUpdate.set(root.get(StepExecutionJpa_.executionException), formatException(abstractStepExecution.getException()));
-            createCriteriaUpdate.set(root.get(StepExecutionJpa_.persistenUserData), abstractStepExecution.getPersistentUserDataSerialized());
-            createCriteriaUpdate.set(root.get(StepExecutionJpa_.readCount), abstractStepExecution.getStepMetrics().get(Metric.MetricType.READ_COUNT));
-            createCriteriaUpdate.set(root.get(StepExecutionJpa_.writeCount), abstractStepExecution.getStepMetrics().get(Metric.MetricType.WRITE_COUNT));
-            createCriteriaUpdate.set(root.get(StepExecutionJpa_.commitCount), abstractStepExecution.getStepMetrics().get(Metric.MetricType.COMMIT_COUNT));
-            createCriteriaUpdate.set(root.get(StepExecutionJpa_.rollbackCount), abstractStepExecution.getStepMetrics().get(Metric.MetricType.ROLLBACK_COUNT));
-            createCriteriaUpdate.set(root.get(StepExecutionJpa_.readSkipCount), abstractStepExecution.getStepMetrics().get(Metric.MetricType.READ_SKIP_COUNT));
-            createCriteriaUpdate.set(root.get(StepExecutionJpa_.processSkipCount), abstractStepExecution.getStepMetrics().get(Metric.MetricType.PROCESS_SKIP_COUNT));
-            createCriteriaUpdate.set(root.get(StepExecutionJpa_.filterCount), abstractStepExecution.getStepMetrics().get(Metric.MetricType.FILTER_COUNT));
-            createCriteriaUpdate.set(root.get(StepExecutionJpa_.writeSkipCount), abstractStepExecution.getStepMetrics().get(Metric.MetricType.WRITE_SKIP_COUNT));
-            createCriteriaUpdate.set(root.get(StepExecutionJpa_.readerCheckPointInfo), abstractStepExecution.getReaderCheckpointInfoSerialized());
-            createCriteriaUpdate.set(root.get(StepExecutionJpa_.writerCheckPointInfo), abstractStepExecution.getWriterCheckpointInfoSerialized());
+            createCriteriaUpdate.set(StepExecutionJpa_.executionException, formatException(abstractStepExecution.getException()));
+            createCriteriaUpdate.set(StepExecutionJpa_.persistenUserData, abstractStepExecution.getPersistentUserDataSerialized());
+            createCriteriaUpdate.set(StepExecutionJpa_.readCount, abstractStepExecution.getStepMetrics().get(Metric.MetricType.READ_COUNT));
+            createCriteriaUpdate.set(StepExecutionJpa_.writeCount, abstractStepExecution.getStepMetrics().get(Metric.MetricType.WRITE_COUNT));
+            createCriteriaUpdate.set(StepExecutionJpa_.commitCount, abstractStepExecution.getStepMetrics().get(Metric.MetricType.COMMIT_COUNT));
+            createCriteriaUpdate.set(StepExecutionJpa_.rollbackCount, abstractStepExecution.getStepMetrics().get(Metric.MetricType.ROLLBACK_COUNT));
+            createCriteriaUpdate.set(StepExecutionJpa_.readSkipCount, abstractStepExecution.getStepMetrics().get(Metric.MetricType.READ_SKIP_COUNT));
+            createCriteriaUpdate.set(StepExecutionJpa_.processSkipCount, abstractStepExecution.getStepMetrics().get(Metric.MetricType.PROCESS_SKIP_COUNT));
+            createCriteriaUpdate.set(StepExecutionJpa_.filterCount, abstractStepExecution.getStepMetrics().get(Metric.MetricType.FILTER_COUNT));
+            createCriteriaUpdate.set(StepExecutionJpa_.writeSkipCount, abstractStepExecution.getStepMetrics().get(Metric.MetricType.WRITE_SKIP_COUNT));
+            createCriteriaUpdate.set(StepExecutionJpa_.readerCheckPointInfo, abstractStepExecution.getReaderCheckpointInfoSerialized());
+            createCriteriaUpdate.set(StepExecutionJpa_.writerCheckPointInfo, abstractStepExecution.getWriterCheckpointInfoSerialized());
         }
         createCriteriaUpdate.where(
                 notStopping
@@ -528,14 +528,14 @@ public final class JpaRepository implements JobRepository {
         CriteriaBuilder criteriaBuilder = this.entityManager.getCriteriaBuilder();
         CriteriaUpdate<PartitionExecutionJpa> createCriteriaUpdate = criteriaBuilder.createCriteriaUpdate(PartitionExecutionJpa.class);
         Root<PartitionExecutionJpa> root = createCriteriaUpdate.from(PartitionExecutionJpa.class);
-        Path<Long> versionPath = root.get(PartitionExecutionJpa_.version);
-        createCriteriaUpdate.set(versionPath, criteriaBuilder.sum(versionPath, 1L));
-        createCriteriaUpdate.set(root.get(PartitionExecutionJpa_.batchStatus), partitionExecutionImpl.getBatchStatus());
-        createCriteriaUpdate.set(root.get(PartitionExecutionJpa_.exitStatus), partitionExecutionImpl.getExitStatus());
-        createCriteriaUpdate.set(root.get(PartitionExecutionJpa_.executionException), formatException(partitionExecutionImpl.getException()));
-        createCriteriaUpdate.set(root.get(PartitionExecutionJpa_.persistenUserData), partitionExecutionImpl.getPersistentUserDataSerialized());
-        createCriteriaUpdate.set(root.get(PartitionExecutionJpa_.readerCheckPointInfo), partitionExecutionImpl.getReaderCheckpointInfoSerialized());
-        createCriteriaUpdate.set(root.get(PartitionExecutionJpa_.writerCheckPointInfo), partitionExecutionImpl.getWriterCheckpointInfoSerialized());
+        Expression<Long> versionPath = root.get(PartitionExecutionJpa_.version);
+        createCriteriaUpdate.set(PartitionExecutionJpa_.version, criteriaBuilder.sum(versionPath, 1L));
+        createCriteriaUpdate.set(PartitionExecutionJpa_.batchStatus, partitionExecutionImpl.getBatchStatus());
+        createCriteriaUpdate.set(PartitionExecutionJpa_.exitStatus, partitionExecutionImpl.getExitStatus());
+        createCriteriaUpdate.set(PartitionExecutionJpa_.executionException, formatException(partitionExecutionImpl.getException()));
+        createCriteriaUpdate.set(PartitionExecutionJpa_.persistenUserData, partitionExecutionImpl.getPersistentUserDataSerialized());
+        createCriteriaUpdate.set(PartitionExecutionJpa_.readerCheckPointInfo, partitionExecutionImpl.getReaderCheckpointInfoSerialized());
+        createCriteriaUpdate.set(PartitionExecutionJpa_.writerCheckPointInfo, partitionExecutionImpl.getWriterCheckpointInfoSerialized());
         createCriteriaUpdate.where(
                 notStopping
                         ? criteriaBuilder.and(

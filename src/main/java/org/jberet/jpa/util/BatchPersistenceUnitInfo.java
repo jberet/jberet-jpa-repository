@@ -11,13 +11,16 @@
 package org.jberet.jpa.util;
 
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.SharedCacheMode;
 import jakarta.persistence.ValidationMode;
 import jakarta.persistence.spi.ClassTransformer;
 import jakarta.persistence.spi.PersistenceUnitInfo;
-import jakarta.persistence.spi.PersistenceUnitTransactionType;
+import jakarta.persistence.PersistenceUnitTransactionType;
 import javax.sql.DataSource;
 
 /**
@@ -31,10 +34,10 @@ public class BatchPersistenceUnitInfo implements PersistenceUnitInfo {
     private PersistenceUnitTransactionType transactionType;
     private DataSource jtaDataSource;
     private DataSource nonJtaDataSource;
-    private List<String> mappingFileNames;
-    private List<URL> jarFileUrls;
+    private List<String> mappingFileNames = new ArrayList<>();
+    private List<URL> jarFileUrls = new ArrayList<>();
     private URL persistenceUnitRootUrl;
-    private List<String> managedClassNames;
+    private List<String> managedClassNames = new ArrayList<>();
     private boolean excludeUnlistedClasses;
     private SharedCacheMode sharedCacheMode;
     private ValidationMode validationMode;
@@ -179,6 +182,46 @@ public class BatchPersistenceUnitInfo implements PersistenceUnitInfo {
 
     @Override
     public void addTransformer(ClassTransformer ct) {
+    }
+
+    @Override
+    public String getScopeAnnotationName() {
+        return null;
+    }
+
+    @Override
+    public List<String> getQualifierAnnotationNames() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public List<String> getManagedPackageDescriptors() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public List<String> getManagedModuleDescriptors() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public List<String> getAllClassNames() {
+        return managedClassNames;
+    }
+
+    @Override
+    public List<String> getAllPackageDescriptors() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public List<String> getAllModuleDescriptors() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public FetchType getDefaultToOneFetchType() {
+        return FetchType.EAGER;
     }
 
     @Override
